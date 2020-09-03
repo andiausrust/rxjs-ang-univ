@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, Subject, timer} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {Course} from '../model/course';
-import {delayWhen, filter, map, retryWhen, shareReplay, tap, withLatestFrom} from 'rxjs/operators';
+import {filter, map, tap} from 'rxjs/operators';
 import {createHttpObservable} from './util';
 import {fromPromise} from 'rxjs/internal-compatibility';
 
@@ -40,12 +40,11 @@ export class Store {
         return this.filterByCategory('ADVANCED');
     }
 
-    selectCourseById(courseId:number) {
+    selectCourseById(courseId: number) {
         return this.courses$
             .pipe(
-                map(courses => courses.find(course => course.id == courseId)),
+                map(courses => courses.find(course => course.id === courseId)),
                 filter(course => !!course)
-
             );
     }
 
@@ -53,15 +52,15 @@ export class Store {
         return this.courses$
             .pipe(
                 map(courses => courses
-                    .filter(course => course.category == category))
+                    .filter(course => course.category === category))
             );
     }
 
-    saveCourse(courseId:number, changes): Observable<any> {
+    saveCourse(courseId: number, changes): Observable<any> {
 
         const courses = this.subject.getValue();
 
-        const courseIndex = courses.findIndex(course => course.id == courseId);
+        const courseIndex = courses.findIndex(course => course.id === courseId);
 
         const newCourses = courses.slice(0);
 
@@ -81,9 +80,6 @@ export class Store {
         }));
 
     }
-
-
-
 
 
 }

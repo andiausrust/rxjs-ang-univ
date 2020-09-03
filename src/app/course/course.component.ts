@@ -1,22 +1,12 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute} from "@angular/router";
-import {Course} from "../model/course";
-import {
-    debounceTime,
-    distinctUntilChanged,
-    startWith,
-    tap,
-    delay,
-    map,
-    concatMap,
-    switchMap,
-    withLatestFrom,
-    concatAll, shareReplay
-} from 'rxjs/operators';
-import {merge, fromEvent, Observable, concat} from 'rxjs';
+import {ActivatedRoute} from '@angular/router';
+import {Course} from '../model/course';
+import {debounceTime, distinctUntilChanged, map, startWith, switchMap} from 'rxjs/operators';
+import {concat, fromEvent, Observable} from 'rxjs';
 import {Lesson} from '../model/lesson';
 import {createHttpObservable} from '../common/util';
 import {Store} from '../common/store.service';
+import {debug, RxJsLoggingLevel} from '../common/debug';
 
 
 @Component({
@@ -26,14 +16,14 @@ import {Store} from '../common/store.service';
 })
 export class CourseComponent implements OnInit, AfterViewInit {
 
-    courseId:number;
+    courseId: number;
 
-    course$ : Observable<Course>;
+    course$: Observable<Course>;
 
     lessons$: Observable<Lesson[]>;
 
 
-    @ViewChild('searchInput', { static: true }) input: ElementRef;
+    @ViewChild('searchInput', {static: true}) input: ElementRef;
 
     constructor(private route: ActivatedRoute, private store: Store) {
 
@@ -50,28 +40,24 @@ export class CourseComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit() {
 
-        const searchLessons$ =  fromEvent<any>(this.input.nativeElement, 'keyup')
+        const searchLessons$ = fromEvent<any>(this.input.nativeElement, 'keyup')
             .pipe(
                 map(event => event.target.value),
+                startWith(''),
+                debug(RxJsLoggingLevel.INFO, 'search'),
                 debounceTime(400),
                 distinctUntilChanged(),
                 switchMap(search => this.loadLessons(search))
             );
-
-        const initialLessons$ = this.loadLessons();
-
-        this.lessons$ = concat(initialLessons$, searchLessons$);
-
     }
 
     loadLessons(search = ''): Observable<Lesson[]> {
         return createHttpObservable(
             `/api/lessons?courseId=${this.courseId}&pageSize=100&filter=${search}`)
             .pipe(
-                map(res => res["payload"])
+                map(res => res['payload'])
             );
     }
-
 
 }
 
